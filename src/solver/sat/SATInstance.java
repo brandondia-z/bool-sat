@@ -16,11 +16,14 @@ public class SATInstance {
   private Set<Integer> vars = new HashSet<Integer>();
   private List<Clause> clauses = new ArrayList<>();
   private final Map<Integer, List<Clause>> variableToClauses = new HashMap<>();
-
+  private Map<Integer, Double> variableActivity = new HashMap<>();
 
   public SATInstance(int numVars, int numClauses) {
-		this.numVars = numVars;
-		this.numClauses = numClauses;
+    this.numVars = numVars;
+    this.numClauses = numClauses;
+    for (int i = 1; i <= numVars; i++) {
+      variableActivity.put(i, 1.0);
+    }
   }
 
   // Deep copy constructor
@@ -28,6 +31,7 @@ public class SATInstance {
     this.numVars = other.numVars;
     this.numClauses = other.numClauses;
     this.vars = new HashSet<>(other.vars);
+    this.variableActivity = new HashMap<>(other.variableActivity);
     for (Clause clause : other.clauses) {
       addClause(new Clause(clause)); // Use Clause's deep copy constructor
     }
@@ -76,7 +80,6 @@ public class SATInstance {
     }
   }
 
-
   public List<Clause> getClausesContaining(int variable) {
     return variableToClauses.getOrDefault(variable, new ArrayList<>());
   }
@@ -85,7 +88,14 @@ public class SATInstance {
     vars.add( (literal < 0) ? -1 * literal : literal);
   }
 
-  
+  public Map<Integer, Double> getVariableActivity() {
+      return variableActivity;
+  }
+
+  public Map<Integer, List<Clause>> getVariableToClauses() {
+      return variableToClauses;
+  }
+
   public String toString() {
     StringBuffer buf = new StringBuffer();
     buf.append("Number of variables: " + numVars + "\n");
