@@ -27,6 +27,23 @@ public class Clause {
     }
   }
 
+  public int isWatching(Integer literal) {
+    for (int i = 0; i < 2; i++) {
+      if (watchedLiterals[i] != null && watchedLiterals[i].equals(literal)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public boolean isUnit() {
+    return literals.size() == 1;
+  }
+
+  public Integer getUnitLiteral() {
+    return literals.iterator().next();
+  }
+
   public Set<Integer> getLiterals() {
     return literals;
   }
