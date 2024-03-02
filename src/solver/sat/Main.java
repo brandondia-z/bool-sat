@@ -43,9 +43,8 @@ public class Main
 			  assignmentsParsed.append((i + 1) + " " + "true ");
 		  }
 	  }
-	  System.out.println(assignmentsParsed);
 		  if (result.getResult()) {
-			  System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f",watch.getTime()) + ", \"Result\": SAT" + ", \"Solution\": " + result.getAssignments() + "}");
+			  System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f",watch.getTime()) + ", \"Result\": SAT" + ", \"Solution\": " + assignmentsParsed + "}");
 		  } else {
 			  System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f",watch.getTime()) + ", \"Result\": UNSAT" +"}");
 
