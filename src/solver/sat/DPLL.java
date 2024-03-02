@@ -2,7 +2,6 @@ package solver.sat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,26 +9,19 @@ import java.util.Set;
 public class DPLL {
 
   public static Result solveSAT(SATInstance instance, Map<Integer, Boolean> assignments) {
-    // initialize assignments map with no assignments
-    if (!doUnitPropagation(instance, assignments)) {
-      return new Result(false, assignments);
-    }
     return new Result(dpll(instance, assignments), assignments);
   }
 
   private static boolean dpll(SATInstance instance, Map<Integer, Boolean> assignments) {
-    // base case: if all clauses are satisfied, return true
-    if (allClausesSatisfied(instance, assignments)) {
-      return true;
-    }
-
-    // base case: if some clause is not satisfied, return false
-    if (someClauseUnsatisfiedWithCurrentAssignments(instance, assignments)) {
-      return false;
-    }
-
     if (!doUnitPropagation(instance, assignments)) {
       return false;
+    }
+
+    if (instance.clauses.isEmpty()) {
+      return true; // All clauses are satisfied
+    }
+    if (hasEmptyClause(instance)) {
+      return false; // An empty clause was found, so the branch is unsatisfiable
     }
 
     // choose an unassigned variable
@@ -42,6 +34,7 @@ public class DPLL {
     assignments.put(variable, true);
     List<Set<Integer>> oldClauses = new ArrayList<>(instance.clauses);
     removeClausesWithAssignedVariable(instance, assignments);
+    removeOppositeLiterals(instance, assignments);
     if (dpll(instance, assignments)) {
       return true;
     }
@@ -52,6 +45,7 @@ public class DPLL {
     assignments.put(variable, false);
     oldClauses = new ArrayList<>(instance.clauses);
     removeClausesWithAssignedVariable(instance, assignments);
+    removeOppositeLiterals(instance, assignments);
     if (dpll(instance, assignments)) {
       return true;
     }
@@ -60,55 +54,19 @@ public class DPLL {
     return false;
   }
 
-  private static boolean allClausesSatisfied(SATInstance instance, Map<Integer, Boolean> assignments) {
-    for (Set<Integer> clause : instance.clauses) {
-      boolean clauseSatisfied = false;
-      for (Integer literal : clause) {
-        int var = Math.abs(literal);
-        boolean val = literal > 0;
-        if (assignments.containsKey(var) && assignments.get(var) == val) {
-          clauseSatisfied = true;
-          break;
-        }
-      }
-      if (!clauseSatisfied) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private static boolean someClauseUnsatisfiedWithCurrentAssignments(SATInstance instance, Map<Integer, Boolean> assignments) {
-    for (Set<Integer> clause : instance.clauses) {
-      boolean clauseUnsatisfied = true;
-      for (Integer literal : clause) {
-        int var = Math.abs(literal);
-        boolean val = literal > 0;
-        if (!assignments.containsKey(var) || assignments.get(var) == val) {
-          clauseUnsatisfied = false;
-          break;
-        }
-      }
-      if (clauseUnsatisfied) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private static Integer chooseVariable(SATInstance instance, Map<Integer, Boolean> assignments) {
      // count the number of times a variable occurs in the clauses
     int maxOccurances = 0;
     Integer mostCommonVariable = null;
-    Map<Integer, Integer> variableToNumOccurances = new HashMap<>();
+    Map<Integer, Integer> variableToNumOccurrences = new HashMap<>();
     for (Set<Integer> clause : instance.clauses) {
       for (Integer literal : clause) {
         int var = Math.abs(literal);
         if (!assignments.containsKey(var)) {
-          int numOccurances = variableToNumOccurances.getOrDefault(var, 0) + 1;
-          variableToNumOccurances.put(var, numOccurances);
-          if (numOccurances > maxOccurances) {
-            maxOccurances = numOccurances;
+          int numOccurrences = variableToNumOccurrences.getOrDefault(var, 0) + 1;
+          variableToNumOccurrences.put(var, numOccurrences);
+          if (numOccurrences > maxOccurances) {
+            maxOccurances = numOccurrences;
             mostCommonVariable = var;
           }
         }
@@ -165,6 +123,30 @@ public class DPLL {
     instance.clauses.removeAll(clausesToRemove);
   }
 
+  // remove all literals that are opposite of the recently assigned variable
+    private static void removeOppositeLiterals(SATInstance instance, Map<Integer, Boolean> assignments) {
+        // First, iterate through the clauses to identify which ones should be removed
+      for (Set<Integer> clause : instance.clauses) {
+        for (Integer literal : clause) {
+          int var = Math.abs(literal);
+          if (assignments.containsKey(var) && assignments.get(var) != (literal > 0)) {
+          // Add the clause to the temporary list and break out of the inner loop
+          clause.remove(literal);
+          break; // Break out of the inner loop once a removal candidate is found
+          }
+        }
+      }
+    }
+
+  // check for empty clauses
+    private static boolean hasEmptyClause(SATInstance instance) {
+      for (Set<Integer> clause : instance.clauses) {
+        if (clause.isEmpty()) {
+          return true;
+        }
+      }
+      return false;
+    }
 
   private DPLL(){}
 }
