@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Usage example: read a given cnf instance file to create 
@@ -27,10 +29,14 @@ public class Main
     watch.start();
     
 		SATInstance instance = DimacsParser.parseCNFFile(input);
-		boolean result = DPLL.solveSAT(instance);
-		System.out.println(instance);
-    
-		watch.stop();
-    System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f",watch.getTime()) + ", \"Result\": " + result + "}");
+		Map<Integer, Boolean> assignments = new HashMap<>();
+		Result result = DPLL.solveSAT(instance, assignments);
+	  	watch.stop();
+		  if (result.getResult()) {
+			  System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f",watch.getTime()) + ", \"Result\": SAT" + ", \"Solution\": " + result.getAssignments() + "}");
+		  } else {
+			  System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f",watch.getTime()) + ", \"Result\": UNSAT" +"}");
+
+		  }
   }
 }

@@ -7,13 +7,12 @@ import java.util.Set;
 
 public class DPLL {
 
-  public static boolean solveSAT(SATInstance instance) {
+  public static Result solveSAT(SATInstance instance, Map<Integer, Boolean> assignments) {
     // initialize assignments map with no assignments
-    Map<Integer, Boolean> assignments = new HashMap<>();
     if (!doUnitPropagation(instance, assignments)) {
-      return false;
+      return new Result(false, assignments);
     }
-    return dpll(instance, assignments);
+    return new Result(dpll(instance, assignments), assignments);
   }
 
   private static boolean dpll(SATInstance instance, Map<Integer, Boolean> assignments) {
@@ -38,16 +37,19 @@ public class DPLL {
     }
 
     // try assigning true to the variable
-    Map<Integer, Boolean> newAssignments = new HashMap<>(assignments);
-    newAssignments.put(variable, true);
-    if (dpll(instance, newAssignments)) {
+    assignments.put(variable, true);
+    if (dpll(instance, assignments)) {
       return true;
     }
+    assignments.remove(variable);
 
     // try assigning false to the variable
-    Map<Integer, Boolean> assignmentsWithFalse = new HashMap<>(assignments);
-    assignmentsWithFalse.put(variable, false);
-    return dpll(instance, assignmentsWithFalse);
+    assignments.put(variable, false);
+    if (dpll(instance, assignments)) {
+      return true;
+    }
+    assignments.remove(variable);
+    return false;
   }
 
   private static boolean allClausesSatisfied(SATInstance instance, Map<Integer, Boolean> assignments) {
