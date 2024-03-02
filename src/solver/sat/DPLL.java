@@ -1,6 +1,8 @@
 package solver.sat;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,17 +40,23 @@ public class DPLL {
 
     // try assigning true to the variable
     assignments.put(variable, true);
+    List<Set<Integer>> oldClauses = new ArrayList<>(instance.clauses);
+    removeClausesWithAssignedVariable(instance, assignments);
     if (dpll(instance, assignments)) {
       return true;
     }
     assignments.remove(variable);
+    instance.clauses = oldClauses;
 
     // try assigning false to the variable
     assignments.put(variable, false);
+    oldClauses = new ArrayList<>(instance.clauses);
+    removeClausesWithAssignedVariable(instance, assignments);
     if (dpll(instance, assignments)) {
       return true;
     }
     assignments.remove(variable);
+    instance.clauses = oldClauses;
     return false;
   }
 
@@ -135,6 +143,28 @@ public class DPLL {
     } while (progress);
     return true;
   }
+
+  // remove all clauses that include the recently assigned variable
+  private static void removeClausesWithAssignedVariable(SATInstance instance, Map<Integer, Boolean> assignments) {
+    // Create a temporary list to hold the clauses to be removed
+    List<Set<Integer>> clausesToRemove = new ArrayList<>();
+
+    // First, iterate through the clauses to identify which ones should be removed
+    for (Set<Integer> clause : instance.clauses) {
+      for (Integer literal : clause) {
+        int var = Math.abs(literal);
+        if (assignments.containsKey(var) && assignments.get(var) == (literal > 0)) {
+          // Add the clause to the temporary list and break out of the inner loop
+          clausesToRemove.add(clause);
+          break; // Break out of the inner loop once a removal candidate is found
+        }
+      }
+    }
+
+    // Remove the identified clauses from the instance's clause collection
+    instance.clauses.removeAll(clausesToRemove);
+  }
+
 
   private DPLL(){}
 }

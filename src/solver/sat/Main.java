@@ -32,6 +32,18 @@ public class Main
 		Map<Integer, Boolean> assignments = new HashMap<>();
 		Result result = DPLL.solveSAT(instance, assignments);
 	  	watch.stop();
+
+
+
+		  StringBuilder assignmentsParsed = new StringBuilder();
+	  for (int i = 0; i < instance.numVars; i++) {
+		  if (assignments.containsKey(i + 1)) {
+			  assignmentsParsed.append((i + 1) + " " + (assignments.get(i + 1)) + " ");
+		  } else {
+			  assignmentsParsed.append((i + 1) + " " + "true ");
+		  }
+	  }
+	  System.out.println(assignmentsParsed);
 		  if (result.getResult()) {
 			  System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f",watch.getTime()) + ", \"Result\": SAT" + ", \"Solution\": " + result.getAssignments() + "}");
 		  } else {
